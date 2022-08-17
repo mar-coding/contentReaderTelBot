@@ -11,13 +11,11 @@ COPY ./requirements.txt /requirements.txt
 #directory for our django app
 COPY . .
 
-COPY ./scripts /scripts
-
 #sets working directory for container to run
 WORKDIR /.
 
 #port of bot host
-EXPOSE 12345
+#EXPOSE 12345
 
 RUN python -m venv /py && \
     /py/bin/pip install --upgrade pip && \
