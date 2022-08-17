@@ -1,0 +1,21 @@
+#version of docker compose
+version: '3.9'
+
+#list of services in our project(like "app")
+#on development server
+services:
+  #name of our services
+  bot:
+    #build command
+    build:
+      #build from current directory
+      context: .
+
+    #automatically restart when server crashes
+    restart: always
+
+    #define environment variable that accessible
+    #from inside our container, and we use it
+    #in our code
+    environment:
+      - SECRET_KEY=${SECRET_KEY}
