@@ -1,1 +1,3 @@
 python-telegram-bot
+
+telegram~=0.0.1

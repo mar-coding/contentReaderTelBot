@@ -2,20 +2,15 @@ FROM python:3.9-alpine3.13
 
 LABEL maintainer = "marcoding78@gmail.com"
 
-#to add all output of python on terminal
-#and not buffered it
 ENV PYTHONUNBUFFERED 1
 
 COPY ./requirements.txt /requirements.txt
 
-#directory for our django app
+#directory
 COPY . .
 
 #sets working directory for container to run
 WORKDIR /.
-
-#port of bot host
-#EXPOSE 12345
 
 RUN python -m venv /py && \
     /py/bin/pip install --upgrade pip && \
