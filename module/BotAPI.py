@@ -14,15 +14,23 @@ class BotAPI:
     updater = Updater(SECRET_KEY, use_context=True)
 
     def __init__(self):
-        self.updater.dispatcher.add_handler(CommandHandler('start', self.start))
-        self.updater.dispatcher.add_handler(CommandHandler('youtube', self.youtube_url))
+        self.updater.dispatcher.add_handler(
+            CommandHandler('start', self.start))
+        self.updater.dispatcher.add_handler(
+            CommandHandler('youtube', self.youtube_url))
         self.updater.dispatcher.add_handler(CommandHandler('help', self.help))
-        self.updater.dispatcher.add_handler(CommandHandler('linkedin', self.linkedIn_url))
-        self.updater.dispatcher.add_handler(CommandHandler('gmail', self.gmail_url))
-        self.updater.dispatcher.add_handler(CommandHandler('geeks', self.geeks_url))
-        self.updater.dispatcher.add_handler(MessageHandler(Filters.text, self.unknown))
-        self.updater.dispatcher.add_handler(MessageHandler(Filters.command, self.unknown))
-        self.updater.dispatcher.add_handler(MessageHandler(Filters.text, self.unknown_text))
+        self.updater.dispatcher.add_handler(
+            CommandHandler('linkedin', self.linkedIn_url))
+        self.updater.dispatcher.add_handler(
+            CommandHandler('gmail', self.gmail_url))
+        self.updater.dispatcher.add_handler(
+            CommandHandler('geeks', self.geeks_url))
+        self.updater.dispatcher.add_handler(
+            MessageHandler(Filters.text, self.unknown))
+        self.updater.dispatcher.add_handler(
+            MessageHandler(Filters.command, self.unknown))
+        self.updater.dispatcher.add_handler(
+            MessageHandler(Filters.text, self.unknown_text))
 
     def start(self, update: Update, context: CallbackContext):
         update.message.reply_text(
