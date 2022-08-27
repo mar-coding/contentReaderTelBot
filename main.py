@@ -2,8 +2,7 @@ from module.BotAPI import BotAPI
 
 
 def main():
-    ba = BotAPI()
-    ba.updater.start_polling()
+    pass
 
 
 if __name__ == "__main__":

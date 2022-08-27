@@ -19,3 +19,5 @@ services:
     #in our code
     environment:
       - SECRET_KEY=${SECRET_KEY}
+      - TEL_ID=${TEL_ID}
+      - TEL_HASH=${TEL_HASH}
