@@ -134,4 +134,7 @@ dmypy.json
 module/config.py
 photo*
 media/
-*.session
+*.session*
+settings.json
+module/BotAPI.py
+test.py

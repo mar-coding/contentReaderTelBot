@@ -1,4 +1,4 @@
-from module.config import TEL_HASH,TEL_ID
+from config import TEL_HASH, TEL_ID
 
 import re
 
@@ -10,15 +10,25 @@ from telethon.tl.types import (
     PeerChat,
 )
 
-# TEL_ID = os.environ.get('TEL_ID')
-# TEL_HASH = os.environ.get('TEL_HASH')
+from telethon.errors.rpcerrorlist import (
+    MessageAuthorRequiredError,
+    ChatIdInvalidError,
+    MessageIdInvalidError,
+    UsernameInvalidError,
+)
+
+from telethon.tl.functions.channels import JoinChannelRequest, LeaveChannelRequest
 
 
 TARGET = '@Mohammad_Amin_R'
-INPUT_CHANNEL = 'me'
+BOT_ADMIN = {
+    'id': 1430850866,
+    'title': "Amin",
+}
 FILTER = ['Python', 'python', 'PYTHON', 'پایتون', 'security', 'Security', 'SECURITY', 'network', 'NETWORK', 'Network',
           'امنیت', 'شبکه']
 
+channels = []
 client = TelegramClient('main', TEL_ID, TEL_HASH)
 
 
@@ -73,21 +83,64 @@ async def main():
             path = await message.download_media()
             print('File saved to', path)  # printed after download is done
 
-# @client.on(events.NewMessage(chats=INPUT_CHANNEL))
-# async def new_msg_listener(events):
-#         # get msg text
-#         new_msg = event.message.message
-#         filtred_msg = re.findall(
-#             r"(?=(" + '|'.join(FILTER) + r"))", new_msg, re.IGNORECASE)
-#         if len(filtred_msg) != 0:
-#             await self.client.forward_messages(entity=TARGET, messages=event.message)
 
 @client.on(events.NewMessage)
-async def my_event_handler(event):
+async def my_test(event):
     if re.match(r'(?i).*(hello)$', event.raw_text, re.IGNORECASE):
         user = PeerUser((await event.message.get_sender()).id)
         user = await client.get_entity(user)
-        await event.reply('سلام{}, من ربات بررسی چنل های شما هستم'.format(user.first_name))
+        await event.reply('Hello {}, This is test.'.format(user.first_name))
+
+
+@client.on(events.NewMessage)
+async def commands(event):
+    cmd_msg = ""
+    msgs = event.raw_text.split('\n')
+    try:
+        chat = await client.get_entity(PeerChat((await event.message.get_chat())).chat_id)
+        # check whether sender is admin or not
+        if chat.id == BOT_ADMIN['id']:
+            # add channel to automatically listen for new posts
+            # check "add ch" has sended from admin
+            # if re.findall(r'(?i)add[ ]*ch$', event.raw_text):
+            cmd_msg = msgs[0]
+            if cmd_msg != None and "add ch".lower() in cmd_msg.lower():
+                if len(msgs) == 1:
+                    await event.reply('🙂Empty list.🙂')
+                else:
+                    tmp = await event.reply('⏳Checking channel link...⏳')
+                    res = ''
+                    async with client.action(chat, 'typing'):
+                        for i, item in zip(range(len(msgs)), msgs[1:len(msgs)]):
+                            try:
+                                channel = await client.get_entity(item)
+                                if await client(JoinChannelRequest(channel)):
+                                    res += '✅Successful joining on link ({})'.format(
+                                        channel.title, i + 1) + '\n'
+                                if re.findall(r'(?:(?:https?|ftp):\/\/)?[\w/\-?=%.]+\.[\w/\-&?=%.]+', item):
+                                    channels.append(
+                                        (channel.id, item, channel.title))
+                                else:
+                                    channels.append(
+                                        (channel.id, 'https://t.me/' + item, channel.title))
+                                await client(JoinChannelRequest(channel))
+                            except UsernameInvalidError:
+                                res += '❌Joining on link ({}) failed. Username not found.\n'.format(
+                                    i+1)
+                            except ValueError:
+                                res += '❌Joining on link ({}) failed. Channel not found.\n'.format(
+                                    i+1)
+                            except TypeError:
+                                res += '❌Joining on link ({}) failed. Enter only channel link.\n'.format(
+                                    i+1)
+                    await client.delete_messages(chat, tmp)
+                    await client.send_message(chat, res, reply_to=event.message)
+            elif cmd_msg != None and "list ch".lower() in cmd_msg.lower():
+                await client.send_message(chat, channels)
+    except ChatIdInvalidError:
+        pass
+    except AttributeError:
+        await event.reply('❗️access out of bounds❗️ \n')
 
 
 with client:
