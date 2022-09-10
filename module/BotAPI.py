@@ -1,5 +1,5 @@
 from config import TEL_HASH, TEL_ID
-
+from EnglishDetector import is_en
 import re
 
 import asyncio
@@ -15,6 +15,7 @@ from telethon.errors.rpcerrorlist import (
     ChatIdInvalidError,
     MessageIdInvalidError,
     UsernameInvalidError,
+    UserNotParticipantError,
 )
 
 from telethon.tl.functions.channels import JoinChannelRequest, LeaveChannelRequest
@@ -25,63 +26,10 @@ BOT_ADMIN = {
     'id': 1430850866,
     'title': "Amin",
 }
-FILTER = ['Python', 'python', 'PYTHON', 'پایتون', 'security', 'Security', 'SECURITY', 'network', 'NETWORK', 'Network',
-          'امنیت', 'شبکه']
 
 channels = []
 client = TelegramClient('main', TEL_ID, TEL_HASH)
-
-
-async def main():
-    # Getting information about yourself
-    me = await client.get_me()
-
-    # "me" is a user object. You can pretty-print
-    # any Telegram object with the "stringify" method:
-    print(me.stringify())
-
-    # When you print something, you see a representation of it.
-    # You can access all attributes of Telegram objects with
-    # the dot operator. For example, to get the username:
-    username = me.username
-    print(username)
-    print(me.phone)
-
-    # You can print all the dialogs/conversations that you are part of:
-    async for dialog in client.iter_dialogs():
-        print(dialog.name, 'has ID', dialog.id)
-
-    # You can send messages to yourself...
-    await client.send_message('me', 'Hello, myself!')
-    # ...to some chat ID
-    await client.send_message('@Mohammad_Amin_R', 'Testing Telethon!')
-
-    # You can, of course, use markdown in your messages:
-    message = await client.send_message(
-        'me',
-        'This message has **bold**, `code`, __italics__ and '
-        'a [nice website](https://example.com)!',
-        link_preview=False
-    )
-
-    # Sending a message returns the sent message object, which you can use
-    print(message.raw_text)
-
-    # You can reply to messages directly if you have a message object
-    await message.reply('Cool!')
-
-    # Or send files, songs, documents, albums...
-    await client.send_file('me', 'media/test.png')
-
-    # You can print the message history of any chat:
-    async for message in client.iter_messages('me'):
-        print(message.id, message.text)
-
-        # You can download media from messages, too!
-        # The method will return the path where the file was saved.
-        if message.photo:
-            path = await message.download_media()
-            print('File saved to', path)  # printed after download is done
+my_keyword = []
 
 
 @client.on(events.NewMessage)
@@ -101,16 +49,18 @@ async def commands(event):
         # check whether sender is admin or not
         if chat.id == BOT_ADMIN['id']:
             # add channel to automatically listen for new posts
-            # check "add ch" has sended from admin
-            # if re.findall(r'(?i)add[ ]*ch$', event.raw_text):
+            # check ":add ch:" has sended from admin
             cmd_msg = msgs[0]
-            if cmd_msg != None and "add ch".lower() in cmd_msg.lower():
+            if cmd_msg != None and ":add ch:".lower() in cmd_msg.lower():
                 if len(msgs) == 1:
                     await event.reply('🙂Empty list.🙂')
                 else:
                     tmp = await event.reply('⏳Checking channel link...⏳')
                     res = ''
                     async with client.action(chat, 'typing'):
+                        # loop on the list of channel that send from admin
+                        # check if they are joinable then join them and finally
+                        # add them to "channels" list
                         for i, item in zip(range(len(msgs)), msgs[1:len(msgs)]):
                             try:
                                 channel = await client.get_entity(item)
@@ -121,22 +71,126 @@ async def commands(event):
                                     channels.append(
                                         (channel.id, item, channel.title))
                                 else:
+                                    if "@" in item:
+                                        item = item.replace("@", "")
                                     channels.append(
                                         (channel.id, 'https://t.me/' + item, channel.title))
                                 await client(JoinChannelRequest(channel))
                             except UsernameInvalidError:
-                                res += '❌Joining on link ({}) failed. Username not found.\n'.format(
+                                res += '❌Joining on link ({}th) failed. Username not found.\n'.format(
                                     i+1)
                             except ValueError:
-                                res += '❌Joining on link ({}) failed. Channel not found.\n'.format(
+                                res += '❌Joining on link ({}th) failed. Channel not found.\n'.format(
                                     i+1)
                             except TypeError:
-                                res += '❌Joining on link ({}) failed. Enter only channel link.\n'.format(
+                                res += '❌Joining on link ({}th) failed. Enter only channel link.\n'.format(
                                     i+1)
                     await client.delete_messages(chat, tmp)
                     await client.send_message(chat, res, reply_to=event.message)
-            elif cmd_msg != None and "list ch".lower() in cmd_msg.lower():
-                await client.send_message(chat, channels)
+
+            # send list of channel to chat
+            # check ":list ch:" has sended from admin
+            elif cmd_msg != None and ":list ch:".lower() in cmd_msg.lower():
+                try:
+                    tmp = await event.reply('⏳Checking list of channels...⏳')
+                    res = ''
+                    async with client.action(chat, 'typing'):
+                        # gather all the name and link of channel
+                        # then send them to chat
+                        for ch in channels:
+                            res += 'Channel name: {}\nChannel link: {}\n ---------- \n'.format(
+                                ch[2], ch[1])
+                    await client.delete_messages(chat, tmp)
+                    await client.send_message(chat, res, reply_to=event.message)
+                except ValueError:
+                    res += '❌Channel list is empty.❌'
+                    await client.send_message(chat, res)
+
+            # check the link that admin send and then
+            # leave them and show the results.
+            elif cmd_msg != None and ":rem ch:".lower() in cmd_msg.lower():
+                if len(msgs) == 1:
+                    await event.reply('🙂Empty list.🙂')
+                else:
+                    res = ''
+                    for i, item in zip(range(len(msgs)), msgs[1:len(msgs)]):
+                        try:
+                            channel = await client.get_entity(item)
+                            if await client(LeaveChannelRequest(channel)):
+                                res += '✅Successful leaving from link ({})'.format(
+                                    channel.title, i + 1) + '\n'
+                            if re.findall(r'(?:(?:https?|ftp):\/\/)?[\w/\-?=%.]+\.[\w/\-&?=%.]+', item):
+                                channels.remove(
+                                    (channel.id, item, channel.title))
+                            else:
+                                if "@" in item:
+                                    item = item.replace("@", "")
+                                channels.remove(
+                                    (channel.id, 'https://t.me/' + item, channel.title))
+                        except UsernameInvalidError:
+                            res += '❌leaving from link ({}th) failed. Username not found.\n'.format(
+                                i+1)
+                        except ValueError:
+                            res += '❌leaving from link ({}th) failed. Channel not found.\n'.format(
+                                i+1)
+                        except TypeError:
+                            res += '❌leaving from link ({}th) failed. Enter only channel link.\n'.format(
+                                i+1)
+                        except UserNotParticipantError:
+                            res += '❌leaving from link ({}th) failed. You are not member of this channel.\n'.format(
+                                i+1)
+                await event.reply(res)
+
+            # check the keyword that admin send
+            # and add them to "my_keyword"
+            elif cmd_msg != None and ":add key:".lower() in cmd_msg.lower():
+                if len(msgs) == 1:
+                    await event.reply('🙂Empty list.🙂')
+                else:
+                    for kw in msgs[:len(msgs)]:
+                        # to handel all keyword without thinking about
+                        # they are persion or english
+                        if is_en(kw):
+                            my_keyword.append(kw.lower())
+                        else:
+                            my_keyword.append(kw)
+                    await event.reply('✅Successful adding keywords.')
+
+            # check the keyword that admin send
+            # and remove them and show the result
+            elif cmd_msg != None and ":rem key:".lower() in cmd_msg.lower():
+                res = '❌These keywords not found:\n'
+                error_flag = False
+                if len(msgs) == 1:
+                    await event.reply('🙂Empty list.🙂')
+                else:
+                    for kw in msgs[:len(msgs)]:
+                        if kw in my_keyword:
+                            my_keyword.remove(kw)
+                        else:
+                            res += "-{} \n".format(kw)
+                            error_flag = True
+                    if error_flag:
+                        print(res)
+                    await event.reply('✅Successful removing keywords.')
+
+            # send list of keyword to chat
+            # check ":list ch:" has sended from admin
+            elif cmd_msg != None and ":list key:".lower() in cmd_msg.lower():
+                try:
+                    tmp = await event.reply('⏳Checking list of keywords...⏳')
+                    res = ''
+                    async with client.action(chat, 'typing'):
+                        # gather all the keywords
+                        # then send them to chat
+                        for i, key in my_keyword:
+                            res += 'keyword{}: {}\n'.format(i, key)
+                    await client.delete_messages(chat, tmp)
+                    await client.send_message(chat, res, reply_to=event.message)
+                except ValueError:
+                    res += '❌Keyword list is empty.❌'
+                    await client.send_message(chat, res)
+
     except ChatIdInvalidError:
         pass
     except AttributeError:
