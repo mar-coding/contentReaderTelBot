@@ -15,3 +15,12 @@
 .venv/
 venv/
 .idea/
+
+
+# my config
+Dockerfile
+LICENSE
+README.md
+anon.session
+*.yml
+

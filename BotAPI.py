@@ -1,5 +1,4 @@
-from config import TEL_HASH, TEL_ID
-from EnglishDetector import is_en
+from module.config import TEL_HASH, TEL_ID
 import re
 
 import asyncio
@@ -225,5 +224,6 @@ async def post_checker(event):
     except ValueError:
         pass
 
-with client:
-    client.run_until_disconnected()
+client.start()
+client.run_until_disconnected()
+client.disconnect()

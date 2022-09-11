@@ -2,4 +2,4 @@
 
 set -e
 
-python main.py
+python BotAPI.py

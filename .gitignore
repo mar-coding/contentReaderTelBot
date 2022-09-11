@@ -131,10 +131,5 @@ dmypy.json
 
 # My config
 .idea
-module/config.py
-photo*
-media/
 *.session*
 settings.json
-module/BotAPI.py
-test.py
