@@ -21,7 +21,7 @@ from telethon.errors.rpcerrorlist import (
 from telethon.tl.functions.channels import JoinChannelRequest, LeaveChannelRequest
 
 
-TARGET = '@Mohammad_Amin_R'
+TARGET = 1306232892
 BOT_ADMIN = {
     'id': 1430850866,
     'title': "Amin",
@@ -147,6 +147,9 @@ async def commands(event):
                 if len(msgs) == 1:
                     await event.reply('🙂Empty list.🙂')
                 else:
+                    # TODO: solve the problem of is_en method
+                    # remove command msg from keyword list
+                    msgs.remove(msgs[0])
                     for kw in msgs[:len(msgs)]:
                         # to handel all keyword without thinking about
                         # they are persion or english
@@ -183,8 +186,8 @@ async def commands(event):
                     async with client.action(chat, 'typing'):
                         # gather all the keywords
                         # then send them to chat
-                        for i, key in my_keyword:
-                            res += 'keyword{}: {}\n'.format(i, key)
+                        for i, key in enumerate(my_keyword):
+                            res += 'keyword {}: {}\n'.format(i, key)
                     await client.delete_messages(chat, tmp)
                     await client.send_message(chat, res, reply_to=event.message)
                 except ValueError:
@@ -197,7 +200,30 @@ async def commands(event):
         await event.reply('❗️access out of bounds❗️ \n')
 
 
+@client.on(events.NewMessage)
+async def post_checker(event):
+    """
+    check the post of specific channels and compare 
+    them with our keywords then forward them to our
+    specific target.
+    """
+    msgs = event.raw_text
+    try:
+        ch = PeerChannel((await event.message.get_sender()).id)
+        ch = await client.get_entity(ch)
+        # check if sender of msg is in our specific list
+        # of listening channel and then check for keywords.
+        if any(item[0] == ch.id for item in channels):
+            find_flag = False
+            for key in my_keyword:
+                if key in event.raw_text:
+                    find_flag = True
+                    break
+            if find_flag:
+                entity = await client.get_entity(TARGET)
+                await client.forward_messages(entity, event.message)
+    except ValueError:
+        pass
+
 with client:
-    # client.loop.run_until_complete(main())
-    # client.run_until_disconnected(new_msg_listener())
     client.run_until_disconnected()
