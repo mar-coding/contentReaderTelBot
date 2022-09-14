@@ -1,4 +1,4 @@
-from module.config import TEL_HASH, TEL_ID
+from module.config import TEL_HASH, TEL_ID, BOT_ADMIN
 import re
 
 import asyncio
@@ -18,12 +18,6 @@ from telethon.errors.rpcerrorlist import (
 )
 
 from telethon.tl.functions.channels import JoinChannelRequest, LeaveChannelRequest
-
-
-BOT_ADMIN = {
-    'id': 1430850866,
-    'title': "Amin",
-}
 
 channels = []
 client = TelegramClient('main', TEL_ID, TEL_HASH)
@@ -54,7 +48,7 @@ async def commands(event):
     try:
         chat = await client.get_entity(PeerChat((await event.message.get_chat())).chat_id)
         # check whether sender is admin or not
-        if chat.id == BOT_ADMIN['id']:
+        if chat.id == BOT_ADMIN:
             # add channel to automatically listen for new posts
             # check ":add ch:" has sended from admin
             cmd_msg = msgs[0]

@@ -20,3 +20,4 @@ services:
     environment:
       - TEL_ID=${TEL_ID}
       - TEL_HASH=${TEL_HASH}
+      - BOT_ADMIN=${BOT_ADMIN}
