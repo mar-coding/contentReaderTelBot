@@ -30,6 +30,7 @@ In this project, I used the **telethon** library in *python3* and **dockerize** 
         ctrl+c (to close python file)
     
     If you run into any problems, feel free to contact me; otherwise, you will see something like the screenshot I provided below:
+
     ![login for create main.session ](/sc/login.png)
     
     =
@@ -65,6 +66,8 @@ In this project, I used the **telethon** library in *python3* and **dockerize** 
 
 4. ### Screenshots
     ![login for create main.session ](/sc/01.jpeg)
+
     ![login for create main.session ](/sc/02.jpeg)
+    
     ![login for create main.session ](/sc/03.jpeg)
 
