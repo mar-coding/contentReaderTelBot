@@ -25,7 +25,7 @@ RUN python -m venv /code/py && \
 #scripts that we want to run
 ENV PATH="/code/scripts:/code/py/bin:$PATH"
 
-#switch to app user
+#switch to app bot
 USER bot
 
 CMD ["run.sh"]
