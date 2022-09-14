@@ -14,10 +14,11 @@ In this project, I used the **telethon** library in *python3* and **dockerize** 
     * python3
 
 2. ### Config & Run
-    after cloning this project, you have to create a `.env` file in the *root* of the project (where *Dockerfile* is) and then put these lines of code to it with the credentials that give to you when you login into this link(its telegram official page) and find your `api_id` and `api_hash`:
+    after cloning this project, you have to create a `.env` file in the *root* of the project (where *Dockerfile* is) and then put these lines of code to it with the credentials that give to you when you login into this link(its telegram official page) and find your `api_id` and `api_hash` To find your_id you can go to the telegram account that you want to be your bot's admin, then start this bot `@userinfobot`, and it will send you your id:
 
         TEL_ID=your_api_id
         TEL_HASH='your_hash_id'
+        BOT_ADMIN=your_id
 
     Before you run this on docker, you must create your session file(it looks like `main.session`) based on your credentials; to do so, you must run the script I wrote for an easy install.
     
