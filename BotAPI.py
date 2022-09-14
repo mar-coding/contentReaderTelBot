@@ -20,7 +20,6 @@ from telethon.errors.rpcerrorlist import (
 from telethon.tl.functions.channels import JoinChannelRequest, LeaveChannelRequest
 
 
-TARGET = 1306232892
 BOT_ADMIN = {
     'id': 1430850866,
     'title': "Amin",
@@ -29,10 +28,14 @@ BOT_ADMIN = {
 channels = []
 client = TelegramClient('main', TEL_ID, TEL_HASH)
 my_keyword = []
+my_target = None
 
 
 @client.on(events.NewMessage)
 async def my_test(event):
+    """
+    just test method to check bot is ready.
+    """
     if re.match(r'(?i).*(hello)$', event.raw_text, re.IGNORECASE):
         user = PeerUser((await event.message.get_sender()).id)
         user = await client.get_entity(user)
@@ -41,6 +44,11 @@ async def my_test(event):
 
 @client.on(events.NewMessage)
 async def commands(event):
+    """
+    it handles the command that we type and check if command
+    send from admin answer them and provide controlling on 
+    on our bot
+    """
     cmd_msg = ""
     msgs = event.raw_text.split('\n')
     try:
@@ -64,7 +72,7 @@ async def commands(event):
                             try:
                                 channel = await client.get_entity(item)
                                 if await client(JoinChannelRequest(channel)):
-                                    res += '✅Successful joining on link ({})'.format(
+                                    res += '✅Successful joining on channel ({})'.format(
                                         channel.title, i + 1) + '\n'
                                 if re.findall(r'(?:(?:https?|ftp):\/\/)?[\w/\-?=%.]+\.[\w/\-&?=%.]+', item):
                                     channels.append(
@@ -152,10 +160,10 @@ async def commands(event):
                     for kw in msgs[:len(msgs)]:
                         # to handel all keyword without thinking about
                         # they are persion or english
-                        if is_en(kw):
-                            my_keyword.append(kw.lower())
-                        else:
-                            my_keyword.append(kw)
+                        # if is_en(kw):
+                        #     my_keyword.append(kw.lower())
+                        # else:
+                        my_keyword.append(kw)
                     await event.reply('✅Successful adding keywords.')
 
             # check the keyword that admin send
@@ -193,6 +201,22 @@ async def commands(event):
                     res += '❌Keyword list is empty.❌'
                     await client.send_message(chat, res)
 
+            # adding and updating channel
+            elif cmd_msg != None and ":add target:".lower() in cmd_msg.lower():
+                if len(msgs) == 1:
+                    await event.reply('🙂Empty list.🙂')
+                else:
+                    t = msgs[1]
+                    global my_target
+                    if my_target is None:
+                        entity = await client.get_entity(t)
+                        my_target = entity
+                        await event.reply('✅Successful adding target.')
+                    else:
+                        entity = await client.get_entity(t)
+                        my_target = entity
+                        await event.reply('✅Successful updating target.')
+
     except ChatIdInvalidError:
         pass
     except AttributeError:
@@ -219,11 +243,13 @@ async def post_checker(event):
                     find_flag = True
                     break
             if find_flag:
-                entity = await client.get_entity(TARGET)
-                await client.forward_messages(entity, event.message)
+                if my_target is not None:
+                    entity = my_target
+                    await client.forward_messages(entity, event.message)
     except ValueError:
         pass
 
-client.start()
-client.run_until_disconnected()
-client.disconnect()
+if __name__ == "__main__":
+    client.start()
+    client.run_until_disconnected()
+    client.disconnect()
