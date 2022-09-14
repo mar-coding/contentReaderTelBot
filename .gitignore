@@ -133,3 +133,4 @@ dmypy.json
 .idea
 *.session*
 settings.json
+bot.log

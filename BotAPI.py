@@ -1,5 +1,7 @@
-from module.config import TEL_HASH, TEL_ID, BOT_ADMIN
 import re
+import logging
+
+from module.config import TEL_HASH, TEL_ID, BOT_ADMIN
 
 import asyncio
 from telethon import TelegramClient, events
@@ -48,7 +50,7 @@ async def commands(event):
     try:
         chat = await client.get_entity(PeerChat((await event.message.get_chat())).chat_id)
         # check whether sender is admin or not
-        if chat.id == BOT_ADMIN:
+        if chat.id == int(BOT_ADMIN):
             # add channel to automatically listen for new posts
             # check ":add ch:" has sended from admin
             cmd_msg = msgs[0]
@@ -213,7 +215,9 @@ async def commands(event):
 
     except ChatIdInvalidError:
         pass
+        
     except AttributeError:
+        logging.exception("Exception occurred")
         await event.reply('❗️access out of bounds❗️ \n')
 
 
@@ -244,6 +248,12 @@ async def post_checker(event):
         pass
 
 if __name__ == "__main__":
-    client.start()
-    client.run_until_disconnected()
-    client.disconnect()
+    logging.basicConfig(filename='bot.log', filemode='a',format='%(levelname)s::%(asctime)s - %(message)s', encoding='utf-8', level=logging.INFO)
+    try:
+        client.start()
+        print("Done. Ready to roll.")
+        logging.info("System Successfully Started!")
+        client.run_until_disconnected()
+        client.disconnect()
+    except:
+        logging.exception("Exception occurred")
